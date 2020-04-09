@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: 0d5ead373876ae84aa1146a4e823d272
+  - enabled: 1
+    path: Assets/Private/Jarvis/Jarvis Test Scene.unity
+    guid: f0a47745d787ff9468d1b3483f481751
   m_configObjects: {}
