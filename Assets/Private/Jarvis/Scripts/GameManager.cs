@@ -5,12 +5,23 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
 {
-    
-    string currentScene;
+
+    private string _currentScene;
+    private string _previousScene;
+    public string CurrentScene { get { return _currentScene; } }
+
+    public  enum GameState { Running, Paused}
+    public GameState State;
+
+    private List<AsyncOperation> loadOperations;
     // Start is called before the first frame update
     void Start()
     {
-        
+
+        _currentScene = "";
+        LoadScene("Menu");
+
+
     }
 
     // Update is called once per frame
@@ -19,20 +30,45 @@ public class GameManager : Singleton<GameManager>
         
     }
 
-    void LoadScene(string sceneName)
+    public void LoadScene(string sceneName)
     {
-        AsyncOperation ao = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-        
-            
+        if (_currentScene != sceneName)
+        {
+            AsyncOperation ao = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 
+            if (ao == null)
+            {
+                return;
+            }
+
+            _previousScene = _currentScene;
+            _currentScene = sceneName;
+            ao.completed += OnLoadSceneComplete;
+        }
+        
     }
 
-    void UnloadScene(string sceneName)
+    public void UnloadScene(string sceneName)
     {
         AsyncOperation ao = SceneManager.UnloadSceneAsync(sceneName);
+        if (ao == null)
+        {
+            return;
+        }
     }
 
+    public void OnLoadSceneComplete(AsyncOperation ao)
+    {
 
+        if (_previousScene != "")
+        {            
+            UnloadScene(_previousScene);
+        }
+        
+        
+    }
+
+    
 
 
 }
