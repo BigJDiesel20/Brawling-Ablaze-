@@ -9,12 +9,15 @@ public class CameraContoller : MonoBehaviour
     private bool _isInitialized;
     public GameObject CamDirection {get {return camDirection;}}
     public bool IsInitiaized {get {return _isInitialized;}}
+    
+    
 
     // Start is called before the first frame update   
 
     private void Awake()
     {
-        InitializeCameraDirection();
+        InitializeCameraDirection();        
+
     }
     void Start()
     {
@@ -52,4 +55,6 @@ public class CameraContoller : MonoBehaviour
             camDirection.transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, transform.eulerAngles.z);
         }
     }
+
+    
 }

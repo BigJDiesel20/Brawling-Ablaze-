@@ -127,7 +127,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1150212425278035225}
-  - {fileID: 5353157297802089198}
+  - {fileID: 1239805362695214772}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -231,78 +231,78 @@ MonoBehaviour:
   acceleration: 10
   speedLimit: 5
   jump: 5
---- !u!1001 &2130464563975513512
+--- !u!1001 &6074820049075125678
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     m_TransformParent: {fileID: 8827864971585214376}
     m_Modifications:
-    - target: {fileID: 5071400227005508768, guid: c257f509ff914fa4a88a9291a1dc5f46,
-        type: 3}
-      propertyPath: m_Name
-      value: Kiyoko_Homura
-      objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.78
+      value: -0.97999996
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalRotation.x
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalRotation.y
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+    - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: c73c36b749b862346a68189e66978445,
+        type: 3}
+      propertyPath: m_Name
+      value: Kiyoko_Homura Rig
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c257f509ff914fa4a88a9291a1dc5f46, type: 3}
---- !u!4 &5353157297802089198 stripped
+  m_SourcePrefab: {fileID: 100100000, guid: c73c36b749b862346a68189e66978445, type: 3}
+--- !u!4 &1239805362695214772 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 6330603160374736710, guid: c257f509ff914fa4a88a9291a1dc5f46,
+  m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
     type: 3}
-  m_PrefabInstance: {fileID: 2130464563975513512}
+  m_PrefabInstance: {fileID: 6074820049075125678}
   m_PrefabAsset: {fileID: 0}
