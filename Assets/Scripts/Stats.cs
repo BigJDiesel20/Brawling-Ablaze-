@@ -27,12 +27,12 @@ public class Stats
             {
 
 
-                if (value < minValue)
+                if (value <= minValue)
                 {
-                    isDepleted = true;                    
+                    isDepleted = true;
                     _value = minValue;
                 }
-                else if (value > maxValue)
+                else if (value >= maxValue)
                 {
                     _value = maxValue;
                 }
@@ -46,7 +46,7 @@ public class Stats
                 //Call UpdateUI Event
             };
 
-
+            
         }
     }
 
@@ -68,12 +68,13 @@ public class Stats
 
     public void AddValue(int additiveValue)
     {
-        Value = Value + additiveValue;
+        Value+= additiveValue;
+        Debug.Log("Called");
     }
 
     public void SubtractValue(int subtractiveValue)
     {
-        Value = Value - subtractiveValue;
+        Value -= subtractiveValue;
     }
 
 }

@@ -114,7 +114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8827864971585214376
 Transform:
   m_ObjectHideFlags: 0
@@ -146,7 +146,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8827864971585214371}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -231,6 +231,7 @@ MonoBehaviour:
   acceleration: 10
   speedLimit: 5
   jump: 5
+  viewVelocity: {x: 0, y: 0, z: 0}
 --- !u!1001 &6074820049075125678
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -238,6 +239,16 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8827864971585214376}
     m_Modifications:
+    - target: {fileID: -6057140222963153312, guid: c73c36b749b862346a68189e66978445,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 1b1a3256f9c8ab44584ffb8e90d7c5fd, type: 2}
+    - target: {fileID: -6057140222963153312, guid: c73c36b749b862346a68189e66978445,
+        type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: c73c36b749b862346a68189e66978445,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -297,6 +308,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Kiyoko_Homura Rig
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: c73c36b749b862346a68189e66978445,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c73c36b749b862346a68189e66978445, type: 3}
