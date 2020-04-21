@@ -23,6 +23,7 @@ public class FlameMeter : MonoBehaviour
 
     void Start()
     {
+        this.flameDict = new Dictionary<string, Sprite>();
         flameDict.Add("black", blackFlame);
         flameDict.Add("blue", blueFlame);
         flameDict.Add("green", greenFlame);

@@ -10,6 +10,7 @@ public class TestInput : MonoBehaviour
 
     void Start()
     {
+        this.state = new Dictionary<string, string>();
         state.Add("slot1", "empty");
         state.Add("slot2", "empty");
         state.Add("slot3", "empty");
