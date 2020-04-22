@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnityEvents  
+public class UnityEvents 
 {
     // Start is called before the first frame update
     void Start()

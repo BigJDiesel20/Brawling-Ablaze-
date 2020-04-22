@@ -13,6 +13,9 @@ public class GameManager : Singleton<GameManager>
     public  enum GameState { Running, Paused}
     public GameState State;
 
+    public CharacterController playerOne;
+    public CharacterController playerTwo;
+
     private List<AsyncOperation> loadOperations;
     // Start is called before the first frame update
     void Start()
