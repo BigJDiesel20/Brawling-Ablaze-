@@ -35,13 +35,24 @@ public class CharacterController : MonoBehaviour
     public bool IsMoving { get { return _isMoving; } }
     public bool IsAttacking { get { return _isAttacking; } }
     public bool IsAttemptingToMove { get { return _isAttemptingToMove; } }
-    public int AttackState { get { return _attackState; } set {_attackState = value; animator.SetInteger("AttackState", _attackState); } }
+    public int AttackState { get { return _attackState; } set {_attackState = value; _animator.SetInteger("AttackState", _attackState); } }
     public bool IsSpecialActive {get{return _isSpecialActive = flame.Value == flame.MaxValue && special.isExecuted == false ?  true : false;  }}
     public float SpecialSpeed { get { return Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z,1, 2); } }
-    
-    
 
-    
+
+
+    // Hurt & Hitboxes
+    public Collider hurtbox;
+    public Collider liteAttackHitbox;
+    public Collider mediumAttackHitbox;
+    public Collider heavyAttackHitbox;
+    public Collider playerCollisionBox;
+    public Collider opponentCollisionBox;
+    public Collider[] enviornments;
+    public Collider[] playerHitboxes;
+    public Collider[] opponentHitboxes;
+    public float horizontalMovement;
+    public float verticalMovement;
 
 
 
@@ -54,10 +65,12 @@ public class CharacterController : MonoBehaviour
 
     Rigidbody rb;
     CameraContoller cameraContoller;
-    private CapsuleCollider bodyCollider;
-    private Animator animator;
+    private Collider bodyCollider;
+    private Animator _animator;
 
     public Execute special;
+
+    public Animator Animator { get { return _animator; } }
     
 
     [System.Serializable]
@@ -74,16 +87,53 @@ public class CharacterController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         rb = GetComponent<Rigidbody>();
         health.Initialize();
         flame.Initialize();
         _attackState = 0;        
         cameraContoller = Camera.main.GetComponent<CameraContoller>();
         bodyCollider = GetComponent<CapsuleCollider>();
-        animator = GetComponentInChildren<Animator>();
+        _animator = GetComponentInChildren<Animator>();        
+        playerCollisionBox = GetComponent<Collider>();
+        playerHitboxes = GetComponentsInChildren<Collider>();
 
+
+
+        foreach (Collider opponentHitbox in opponentHitboxes)
+        {
+            if (opponentHitbox.gameObject.CompareTag("Hitbox"))
+            {
+                Physics.IgnoreCollision(opponentHitbox, playerCollisionBox);  // Prevent Player Hitboxes from Colliding with playerCollisionBox
+            }
+        }
+
+
+
+        foreach (Collider opponentHitbox in opponentHitboxes)
+        {
+            foreach (Collider playerHitbox in playerHitboxes)
+            {
+                Physics.IgnoreCollision(playerHitbox, opponentHitbox);// Prevent Player Hitboxes from Colliding with Opponent Hitboxes
+            }
+        }
+
+       
         
-        
+        foreach (Collider environment in enviornments)
+        {
+            foreach (Collider playerHitbox in playerHitboxes)
+            {
+                if(playerHitbox.gameObject.CompareTag("Hitbox"))
+                {
+                    Physics.IgnoreCollision(environment, playerHitbox); // Prevent playerHitboxes form Colliding with the Environment;
+                }
+            }
+        }
+
+
+            
+
     }
 
     // Update is called once per frame
@@ -101,13 +151,17 @@ public class CharacterController : MonoBehaviour
         inputMovementDirection.Normalize();
         _isAttemptingToMove = inputMovementDirection != Vector3.zero;
         _isMoving = inputMovementDirection != new Vector3(0,rb.velocity.y,0) ? true : false;
-        animator.SetBool("IsAttemptingToMove", _isAttemptingToMove);
-        animator.SetBool("IsMoving", _isMoving);
+        _animator.SetBool("IsAttemptingToMove", _isAttemptingToMove);
+        _animator.SetBool("IsMoving", _isMoving);
+        horizontalMovement =transform.InverseTransformDirection(inputMovementDirection).x;
+        verticalMovement = transform.InverseTransformDirection(inputMovementDirection).z;
+        //_animator.SetFloat("HorizontalMovement", horizontalMovement);
+        //_animator.SetFloat("VerticalMovement", verticalMovement);
         //float speed = speedLimit /  == 0 ? 1 : rb.velocity.sqrMagnitude;
         viewVelocity = transform.InverseTransformDirection(rb.velocity);
 
 
-        animator.SetFloat("MovementMultiplyer",  transform.InverseTransformDirection(rb.velocity).z / speedLimit);
+        _animator.SetFloat("MovementMultiplyer", inputMovementDirection.sqrMagnitude);//Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z / speedLimit,.1f, transform.InverseTransformDirection(rb.velocity).z));
 
         ConvertInputDirToCameraDir(ref inputMovementDirection); // Converting Input to Camera's Direction
         
@@ -157,7 +211,7 @@ public class CharacterController : MonoBehaviour
         isGrounded = Physics.Raycast(transform.position, Vector3.down, bodyCollider.bounds.extents.y + .01f);
         if (isGrounded) _apexReached = false;
         _isGrounded = isGrounded;
-        animator.SetBool("IsGrounded", _isGrounded);
+        _animator.SetBool("IsGrounded", _isGrounded);
     }
 
     void DetectApex()
@@ -204,26 +258,34 @@ public class CharacterController : MonoBehaviour
     
     void AnimatiorStateBehaviour(Vector3 inputMovementDirection, float horizontal, float vertical, float jump)
     {
-        Action<int, bool> Attack = (nextAttack, input) => { if (input) { _isAttacking = true; _isMoving = false; animator.SetBool("IsAttacking", _isAttacking); AttackState++; AttackState = AttackState > nextAttack ? nextAttack : AttackState; } };
-        Action<bool> Special = (x) => { if (x == true) { Debug.Log(IsSpecialActive); animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
-        Action ResetTime = () => { _isAttacking = _isAttacking == true ? false : _isAttacking; animator.SetBool("IsAttacking", _isAttacking); };
+        Action<int, bool> Attack = (nextAttack, input) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); AttackState++; AttackState = AttackState > nextAttack ? nextAttack : AttackState; } };
+        Action<bool> Special = (x) => { if (x == true) { Debug.Log(IsSpecialActive); _animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
+        Action ResetTime = () => { _isAttacking = _isAttacking == true ? false : _isAttacking; _animator.SetBool("IsAttacking", _isAttacking); };
         
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
+        if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
-            Attack(1, Input.GetKeyDown(KeyCode.F));
+            if (_isGrounded)
+            {
+                Attack(1, Input.GetKeyDown(KeyCode.F));
+            }
+            RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             IdlePlayerMovement(jump); // Movement allowed while player is idle
             Special(Input.GetKeyDown(KeyCode.G));
 
             
         }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("Running"))
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Running"))
         {
-
-            Attack(1, Input.GetKeyDown(KeyCode.F));
-            RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is running
+            if (_isGrounded)
+            {
+                Attack(1, Input.GetKeyDown(KeyCode.F));
+            }
+            RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
+            rb.AddForce(0, jump, 0, ForceMode.Impulse);
+            //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is running
             Special(Input.GetKeyDown(KeyCode.G));
         }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch"))
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch"))
         {
 
 
@@ -231,25 +293,27 @@ public class CharacterController : MonoBehaviour
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is weak punching
             Special(Input.GetKeyDown(KeyCode.G));
         }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("Medium Kick"))
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Medium Kick"))
         {
 
             Attack(4, Input.GetKeyDown(KeyCode.F));
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is medium kicking
             Special(Input.GetKeyDown(KeyCode.G));
         }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick"))
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick"))
         {
 
             Attack(10, Input.GetKeyDown(KeyCode.F));
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is heavy kicking
             Special(Input.GetKeyDown(KeyCode.G));
         }
-        else if (animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick"))
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick"))
         {
-            RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is using Special
+            RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
+            //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is using Special
             Debug.Log("Hurricane Kick");
-            animator.SetFloat("SpecialSpeed", SpecialSpeed);
+            _animator.SetFloat("SpecialSpeed", SpecialSpeed);
+            
         }
        
     }
@@ -264,7 +328,7 @@ public class CharacterController : MonoBehaviour
     void RunningPlayerMovement(Vector3 inputMovementDirection, float horizontal, float vertical, float jump)
     {
         // Rotating Playing towards the Input directions.
-        Vector3 movementDirection = Vector3.RotateTowards(transform.forward, inputMovementDirection, 10 * Time.deltaTime, 0.0f); // Rotates the characters forward towards the direction of the Input movement;
+        Vector3 movementDirection = Vector3.RotateTowards(transform.forward, inputMovementDirection, 50 * Time.deltaTime, 0.0f); // Rotates the characters forward towards the direction of the Input movement;
         if (horizontal != 0 || vertical != 0)
             transform.rotation = Quaternion.LookRotation(movementDirection);
 
@@ -278,6 +342,15 @@ public class CharacterController : MonoBehaviour
 
         rb.AddForce(0, jump, 0, ForceMode.Impulse);
     }
+
+    void RotateTowardsMovementDirection(Vector3 inputMovementDirection, float horizontal, float vertical)
+    {
+        Vector3 movementDirection = Vector3.RotateTowards(transform.forward, inputMovementDirection, 360 * Time.deltaTime,0.0f); // Rotates the characters forward towards the direction of the Input movement;
+        if (horizontal != 0 || vertical != 0)
+            transform.rotation = Quaternion.LookRotation(movementDirection);
+    }
+
+    
 
     void IdlePlayerMovement(float jump)
     {
@@ -295,10 +368,15 @@ public class CharacterController : MonoBehaviour
             Debug.Log(flame.MaxValue);
         }
 
-        animator.SetBool("IsSpecialActive", IsSpecialActive);
+        _animator.SetBool("IsSpecialActive", IsSpecialActive);
         special.isExecuted = false;
     }
 
+    
+
+    
+
+    
     
 
 }

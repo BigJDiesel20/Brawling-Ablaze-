@@ -1,21 +1,32 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class AttackDefinition : MonoBehaviour
-{
-    public int Damage;
-    public string attackType;
+[System.Serializable]
+public class AttackDefinition
+{    
+    [SerializeField]private int damage;
+    [SerializeField]private string _attackType;
     
-    // Start is called before the first frame update
-    void Start()
+    public int Damage { get { return damage; } }
+    public string AttackType
     {
-        
-    }
+        get
+        {
+            
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+            if (_attackType == "LiteAttack" || _attackType == "MediumAttack" || _attackType == "HeavyAttack" || _attackType == "SpecialAttack")
+            {
+                return _attackType;
+            }
+            else
+            {
+                string name = _attackType;
+                _attackType = string.Empty;
+                Debug.LogError("The AttackDefinition name " + name + " is an invalid attack Type");
+                return _attackType;
+            }
+        }
     }
+    
+    
 }
