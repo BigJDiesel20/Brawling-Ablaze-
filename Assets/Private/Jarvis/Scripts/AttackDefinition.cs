@@ -1,18 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 [System.Serializable]
 public class AttackDefinition
-{    
-    [SerializeField]private int damage;
-    [SerializeField]private string _attackType;
-    
+{
+    [SerializeField] private int damage;
+    [SerializeField] private string _attackType;
+    [SerializeField] private AudioClip _attackSound;
+
     public int Damage { get { return damage; } }
     public string AttackType
     {
         get
         {
-            
+
 
             if (_attackType == "LiteAttack" || _attackType == "MediumAttack" || _attackType == "HeavyAttack" || _attackType == "SpecialAttack")
             {
@@ -27,6 +29,10 @@ public class AttackDefinition
             }
         }
     }
-    
-    
+
+    public AudioClip AttackSound { get { return _attackSound; } }
 }
+
+    
+    
+
