@@ -28,7 +28,8 @@ public class CharacterController : MonoBehaviour
     private int _attackState;
     private bool _isSpecialActive;
     private bool _inAttackRange;
-    
+    private bool _isBlocking;
+
 
 
     private float previousHeight;
@@ -42,11 +43,11 @@ public class CharacterController : MonoBehaviour
     public bool IsMoving { get { return _isMoving; } }
     public bool IsAttacking { get { return _isAttacking; } }
     public bool IsAttemptingToMove { get { return _isAttemptingToMove; } }
-    public int AttackState { get { return _attackState; } set {_attackState = value; _animator.SetInteger("AttackState", _attackState); } }
-    public bool IsSpecialActive {get{return _isSpecialActive = flame.Value == flame.MaxValue && special.isExecuted == false ?  true : false;  }}
-    public float SpecialSpeed { get { return Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z,1, 2); } }
+    public int AttackState { get { return _attackState; } set { _attackState = value; _animator.SetInteger("AttackState", _attackState); } }
+    public bool IsSpecialActive { get { return _isSpecialActive = flame.Value == flame.MaxValue && special.isExecuted == false ? true : false; } }
+    public float SpecialSpeed { get { return Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z, 1, 2); } }
     public bool InAttackRange { get { return _inAttackRange; } set { _inAttackRange = value; } }
-
+    public bool IsBlocking { get { return _isBlocking; } set { _isBlocking = value; } }
 
 
     // Hurt & Hitboxes
@@ -70,9 +71,9 @@ public class CharacterController : MonoBehaviour
     enum AttackType { None, Weak, Medium, Heavy }
     AttackType atackType;
 
-    enum AnimationState { Idle = 0,}
+    enum AnimationState { Idle = 0, }
 
-    
+
 
     Rigidbody rb;
     CameraContoller cameraContoller;
@@ -82,7 +83,7 @@ public class CharacterController : MonoBehaviour
     public Execute special;
 
     public Animator Animator { get { return _animator; } }
-    
+
 
     [System.Serializable]
     public class Execute
@@ -99,6 +100,45 @@ public class CharacterController : MonoBehaviour
     OnComplete onInitializedComplete;
     bool isInitialized = false;
     bool isSetup = false;
+
+    [System.Serializable]
+    public class Timer
+    {
+        public float count;
+        private bool _isActive;
+        private bool _isReset;
+        public bool IsActive { get { return _isActive; } set { _isActive = value; } }
+        public bool IsReset { get { return _isReset; }}
+
+
+        public Timer()
+        {
+            count = 0f;
+            _isActive = false;
+            _isReset = true;
+
+        }
+
+        public void Counting()
+        {
+            
+            if (_isActive) { count += Time.deltaTime; _isReset = false; }
+
+        }
+
+        public void ResetCount(bool resetTimer)
+        {       
+             if (resetTimer == true && count != 0) { count = 0; _isReset = true; }
+                
+        }
+
+        
+    }
+
+    Timer delayActionTimer;
+    public float viewTimer;
+    public bool viewActive;
+    public bool viewReset;
     
     private void Awake()
     {
@@ -108,6 +148,8 @@ public class CharacterController : MonoBehaviour
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        IsBlocking = false;
+        delayActionTimer = new Timer();
     }
 
     // Update is called once per frame
@@ -116,10 +158,13 @@ public class CharacterController : MonoBehaviour
         if (isInitialized == false) { Initialized(); return; }
         if (isSetup == false) { Setup(); return; }
         playerInput.ChangeController(playerID, this);
+        _isBlocking = playerInput.GetKey(1);
+        _animator.SetBool("Block", _isBlocking);
+        delayActionTimer.Counting();
+        viewTimer = delayActionTimer.count;
+        viewActive = delayActionTimer.IsActive;
+        viewReset = delayActionTimer.IsReset;
 
-        
-
-        
 
 
 
@@ -145,7 +190,9 @@ public class CharacterController : MonoBehaviour
         //float speed = speedLimit /  == 0 ? 1 : rb.velocity.sqrMagnitude;
         viewVelocity = transform.InverseTransformDirection(rb.velocity);
 
-
+        
+        
+        
         _animator.SetFloat("MovementMultiplyer", inputMovementDirection.sqrMagnitude);//Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z / speedLimit,.1f, transform.InverseTransformDirection(rb.velocity).z));
 
         ConvertInputDirToCameraDir(ref inputMovementDirection); // Converting Input to Camera's Direction
@@ -193,7 +240,7 @@ public class CharacterController : MonoBehaviour
     {
         bool isGrounded;
 
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, bodyCollider.bounds.extents.y + .01f);
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, /*bodyCollider.bounds.extents.y +*/ .1f);
         if (isGrounded) _apexReached = false;
         _isGrounded = isGrounded;
         _animator.SetBool("IsGrounded", _isGrounded);
@@ -215,6 +262,7 @@ public class CharacterController : MonoBehaviour
         //Debug.Log();
         if (AttackState <= 1)
         {
+            Debug.Log("LightPunch Reset");
             this.AttackState = 0;            
         }        
 
@@ -225,6 +273,7 @@ public class CharacterController : MonoBehaviour
         //Debug.Log();
         if (AttackState >= 2)
         {
+            Debug.Log("MediumKick Reset");
             this.AttackState = 0;
         }
 
@@ -234,41 +283,55 @@ public class CharacterController : MonoBehaviour
     {
         
         //Debug.Log();
-        if (AttackState < 0)
+        if (AttackState >= 0)
         {
+            Debug.Log("HeavyKick Reset");
             this.AttackState = 0;
+            _animator.SetInteger("AttackState", _attackState);
         }
 
     }
 
 
-    
+    public
     void AnimatiorStateBehaviour(Vector3 inputMovementDirection, float horizontal, float vertical, float jump)
     {
-        Action<int,bool,Collider> Attack = (nextAttack, input,hitBoxCollider) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); /*if (hitBoxCollider != null) hitBoxCollider.enabled = true;AttackState++;*/ AttackState = AttackState > nextAttack ? nextAttack : AttackState += 1; RotateTowardsOpponent(opponentController.gameObject.transform.position, _inAttackRange); } };
+        Action<int, bool, Collider> Attack = (nextAttack, input, hitBoxCollider) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); /*if (hitBoxCollider != null) hitBoxCollider.enabled = true;AttackState++;*/ AttackState = AttackState > nextAttack ? nextAttack : AttackState += 1; RotateTowardsOpponent(opponentController.gameObject.transform.position, _inAttackRange); } };
         Action<bool> Special = (x) => { if (x == true) { Debug.Log(IsSpecialActive); _animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
         Action ResetTime = () => { _isAttacking = _isAttacking == true ? false : _isAttacking; _animator.SetBool("IsAttacking", _isAttacking); };
 
+        delayActionTimer.IsActive = _animator.GetCurrentAnimatorStateInfo(0).IsName("Idle") || _animator.GetCurrentAnimatorStateInfo(0).IsName("Running") ? true : false;
         
         if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
+            //if (delayActionTimer.count > 3f)
+            //{
+                if (_isGrounded)
+                {
+                    Attack(1, playerInput.GetKeyDown(2), null);
+                }
+            //}
             
-            if (_isGrounded)
-            {
-                Attack(1, playerInput.GetKeyDown(2),null);
-            }
+
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             IdlePlayerMovement(jump); // Movement allowed while player is idle
             Special(playerInput.GetKeyDown(3));
+            //if (_attackState < 2) {_attackState = 0; _animator.SetInteger("AttackState", _attackState);}
+            //_animator.SetInteger("AttackState", _attackState);
 
-            
+
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Running"))
         {
-            if (_isGrounded)
-            {
-                Attack(1, playerInput.GetKeyDown(2),liteAttackHitbox);
-            }
+            //if (delayActionTimer.count > 3)
+            //{ 
+                if (_isGrounded)
+                {
+                    Attack(1, playerInput.GetKeyDown(2), liteAttackHitbox);
+                }
+            //}
+            
+
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             rb.AddForce(0, jump, 0, ForceMode.Impulse);
             //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is running
@@ -276,33 +339,38 @@ public class CharacterController : MonoBehaviour
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch"))
         {
-            
-            Attack(2, playerInput.GetKeyDown(2),mediumAttackHitbox);
+            delayActionTimer.ResetCount(true);
+            Attack(2, playerInput.GetKeyDown(2), mediumAttackHitbox);
 
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is weak punching
             Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Medium Kick"))
         {
-
-            Attack(4, playerInput.GetKeyDown(2),heavyAttackHitbox);
+            delayActionTimer.ResetCount(true);
+            Attack(4, playerInput.GetKeyDown(2), heavyAttackHitbox);
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is medium kicking
             Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick"))
         {
-
+            delayActionTimer.ResetCount(true);
             Attack(10, playerInput.GetKeyDown(2), specialAttackHitbox);
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is heavy kicking
             Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick"))
         {
+            delayActionTimer.ResetCount(true);
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is using Special
             Debug.Log("Hurricane Kick");
             _animator.SetFloat("SpecialSpeed", SpecialSpeed);
-            
+
+        }
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Defeated")) ;
+        {
+
         }
 
        
@@ -339,7 +407,7 @@ public class CharacterController : MonoBehaviour
         if (horizontal != 0 || vertical != 0)
             transform.rotation = Quaternion.LookRotation(movementDirection);
     }
-    void RotateTowardsOpponent(Vector3 opponentLocation, bool inAttackRange)
+    public void RotateTowardsOpponent(Vector3 opponentLocation, bool inAttackRange)
     {
         //Debug.Log(opponentLocation);
         //Debug.Log(inAttackRange);
@@ -362,7 +430,7 @@ public class CharacterController : MonoBehaviour
 
         for (int i = flame.Value; i > 0; i--)
         {        
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1);
             flame.SubtractValue(1);
             Debug.Log(flame.MaxValue);
         }
@@ -381,6 +449,11 @@ public class CharacterController : MonoBehaviour
         //Animator.applyRootMotion = _animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick") ? false : true;
         specialAttackHitbox.enabled = _animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick") ? true : false;
         
+    }
+
+    void MediumAttackEnabled()
+    {
+        mediumAttackHitbox.enabled = true;
     }
 
 
@@ -450,7 +523,7 @@ public class CharacterController : MonoBehaviour
     public void AttackAudio()
     {
         audioSource.clip = audioClip;
-        audioSource.volume = 0.005f;
+        audioSource.volume = 0.5f;
         audioSource.Play();
     }
 
@@ -460,4 +533,6 @@ public class CharacterController : MonoBehaviour
         isInitialized = false;
         isSetup = false;
     }
+
+    
 }

@@ -75,6 +75,14 @@ ModelImporter:
         floatParameter: 2
         intParameter: 0
         messageOptions: 0
+      - time: 0
+        functionName: MediumAttackEnabled
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: d12b9947c196d734da51a39528a0df31,
+          type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

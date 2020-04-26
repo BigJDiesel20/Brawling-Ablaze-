@@ -108,6 +108,12 @@ public class CustomInput
         return Input.GetKeyDown((KeyCode)Enum.Parse(typeof(KeyCode),"Joystick"+ playerID+"Button"+controllerKey));
         
     }
+    public bool GetKey(int controllerKey)
+    {
+        ////Debug.Log((KeyCode)Enum.Parse(typeof(KeyCode), "Joystick" + playerID + "Button" + controllerKey));        
+        return Input.GetKey((KeyCode)Enum.Parse(typeof(KeyCode), "Joystick" + playerID + "Button" + controllerKey));
+
+    }
 
     public void ChangeController(int newPlayerID, CharacterController controller)
     {
