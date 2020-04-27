@@ -7,9 +7,10 @@ public class Stats
 {
     [Tooltip("Current numerical value")][SerializeField] private int _value;
     [Tooltip("Minimum numerical value")] [SerializeField] private int minValue;
-    [Tooltip("Maximum numerical value")] [SerializeField] private int maxValue;
+    [Tooltip("Maximum numerical value")] [SerializeField] private int maxValue;   
     private bool isDepleted = false;
     private bool isInitialize = false;
+    
     
 
 
@@ -53,6 +54,7 @@ public class Stats
     public int MaxValue {get{return maxValue;}}
     public bool IsDepleted { get { return isDepleted; } }
     public bool IsInitialize { get { return isInitialize; } }
+    
 
 
     public void Initialize()
@@ -74,7 +76,20 @@ public class Stats
 
     public void SubtractValue(int subtractiveValue)
     {
-        Value -= subtractiveValue;
+        
+            Value -= subtractiveValue;
+        
     }
+    public void SubtractValue(int subtractiveValue, bool isBlocking)
+    {
+        if (isBlocking == false)
 
+        {
+            Value -= subtractiveValue;
+        }
+        else
+        {
+            Value -= 1;
+        }
+    }
 }

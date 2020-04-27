@@ -14,8 +14,7 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
             return _instance;
         }
     }
-    // Start is called before the first frame update
-    void Start()
+    protected virtual void Awake()
     {
         if (_instance != null)
         {
@@ -25,11 +24,17 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
         {
             _instance = (T)this;
         }
+        
+    }
+    // Start is called before the first frame update
+    protected virtual void Start()
+    {
+        
     }
         
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
         
     }

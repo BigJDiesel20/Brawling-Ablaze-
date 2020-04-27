@@ -5,6 +5,12 @@ using UnityEngine;
 
 public class CharacterController : MonoBehaviour
 {
+    public int playerID;
+    CustomInput playerInput;
+    public CharacterController opponentController;
+    public AudioSource audioSource;
+    public AudioClip audioClip;
+
     [Header("Stats")]
     [Tooltip("The amount of Hit Point the character possesses")] public Stats health;
     [Tooltip("The amount of flames the charactrer possesses")] public Stats flame;
@@ -21,7 +27,9 @@ public class CharacterController : MonoBehaviour
     private bool nextAttack;
     private int _attackState;
     private bool _isSpecialActive;
-    
+    private bool _inAttackRange;
+    private bool _isBlocking;
+
 
 
     private float previousHeight;
@@ -35,10 +43,11 @@ public class CharacterController : MonoBehaviour
     public bool IsMoving { get { return _isMoving; } }
     public bool IsAttacking { get { return _isAttacking; } }
     public bool IsAttemptingToMove { get { return _isAttemptingToMove; } }
-    public int AttackState { get { return _attackState; } set {_attackState = value; _animator.SetInteger("AttackState", _attackState); } }
-    public bool IsSpecialActive {get{return _isSpecialActive = flame.Value == flame.MaxValue && special.isExecuted == false ?  true : false;  }}
-    public float SpecialSpeed { get { return Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z,1, 2); } }
-
+    public int AttackState { get { return _attackState; } set { _attackState = value; _animator.SetInteger("AttackState", _attackState); } }
+    public bool IsSpecialActive { get { return _isSpecialActive = flame.Value == flame.MaxValue && special.isExecuted == false ? true : false; } }
+    public float SpecialSpeed { get { return Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z, 1, 2); } }
+    public bool InAttackRange { get { return _inAttackRange; } set { _inAttackRange = value; } }
+    public bool IsBlocking { get { return _isBlocking; } set { _isBlocking = value; } }
 
 
     // Hurt & Hitboxes
@@ -46,6 +55,7 @@ public class CharacterController : MonoBehaviour
     public Collider liteAttackHitbox;
     public Collider mediumAttackHitbox;
     public Collider heavyAttackHitbox;
+    public Collider specialAttackHitbox;
     public Collider playerCollisionBox;
     public Collider opponentCollisionBox;
     public Collider[] enviornments;
@@ -54,14 +64,16 @@ public class CharacterController : MonoBehaviour
     public float horizontalMovement;
     public float verticalMovement;
 
+    public bool isopponentHitboxesSet;
+
 
 
     enum AttackType { None, Weak, Medium, Heavy }
     AttackType atackType;
 
-    enum AnimationState { Idle = 0,}
+    enum AnimationState { Idle = 0, }
 
-    
+
 
     Rigidbody rb;
     CameraContoller cameraContoller;
@@ -71,7 +83,7 @@ public class CharacterController : MonoBehaviour
     public Execute special;
 
     public Animator Animator { get { return _animator; } }
-    
+
 
     [System.Serializable]
     public class Execute
@@ -84,70 +96,88 @@ public class CharacterController : MonoBehaviour
         }
     }
 
+    public delegate void OnComplete();
+    OnComplete onInitializedComplete;
+    bool isInitialized = false;
+    bool isSetup = false;
+
+    [System.Serializable]
+    public class Timer
+    {
+        public float count;
+        private bool _isActive;
+        private bool _isReset;
+        public bool IsActive { get { return _isActive; } set { _isActive = value; } }
+        public bool IsReset { get { return _isReset; }}
+
+
+        public Timer()
+        {
+            count = 0f;
+            _isActive = false;
+            _isReset = true;
+
+        }
+
+        public void Counting()
+        {
+            
+            if (_isActive) { count += Time.deltaTime; _isReset = false; }
+
+        }
+
+        public void ResetCount(bool resetTimer)
+        {       
+             if (resetTimer == true && count != 0) { count = 0; _isReset = true; }
+                
+        }
+
+        
+    }
+
+    Timer delayActionTimer;
+    public float viewTimer;
+    public bool viewActive;
+    public bool viewReset;
+    
+    private void Awake()
+    {
+       
+    }
     // Start is called before the first frame update
     void Start()
     {
-
-        rb = GetComponent<Rigidbody>();
-        health.Initialize();
-        flame.Initialize();
-        _attackState = 0;        
-        cameraContoller = Camera.main.GetComponent<CameraContoller>();
-        bodyCollider = GetComponent<CapsuleCollider>();
-        _animator = GetComponentInChildren<Animator>();        
-        playerCollisionBox = GetComponent<Collider>();
-        playerHitboxes = GetComponentsInChildren<Collider>();
-
-
-
-        foreach (Collider opponentHitbox in opponentHitboxes)
-        {
-            if (opponentHitbox.gameObject.CompareTag("Hitbox"))
-            {
-                Physics.IgnoreCollision(opponentHitbox, playerCollisionBox);  // Prevent Player Hitboxes from Colliding with playerCollisionBox
-            }
-        }
-
-
-
-        foreach (Collider opponentHitbox in opponentHitboxes)
-        {
-            foreach (Collider playerHitbox in playerHitboxes)
-            {
-                Physics.IgnoreCollision(playerHitbox, opponentHitbox);// Prevent Player Hitboxes from Colliding with Opponent Hitboxes
-            }
-        }
-
-       
-        
-        foreach (Collider environment in enviornments)
-        {
-            foreach (Collider playerHitbox in playerHitboxes)
-            {
-                if(playerHitbox.gameObject.CompareTag("Hitbox"))
-                {
-                    Physics.IgnoreCollision(environment, playerHitbox); // Prevent playerHitboxes form Colliding with the Environment;
-                }
-            }
-        }
-
-
-            
-
+        audioSource = GetComponent<AudioSource>();
+        IsBlocking = false;
+        delayActionTimer = new Timer();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (isInitialized == false) { Initialized(); return; }
+        if (isSetup == false) { Setup(); return; }
+        playerInput.ChangeController(playerID, this);
+        _isBlocking = playerInput.GetKey(1);
+        _animator.SetBool("Block", _isBlocking);
+        delayActionTimer.Counting();
+        viewTimer = delayActionTimer.count;
+        viewActive = delayActionTimer.IsActive;
+        viewReset = delayActionTimer.IsReset;
 
-        
+
+
+
+        //if (playerInput == null) playerInput = new CustomInput(playerID);
+        //opponentController = GameManager.Instance.playerTwo;
+
 
         DetectGroundSurface();
         DetectApex();
         // Input
                 
         Func<bool, float> Jump = (x) => { return x == true ? _isGrounded ? jump : 0 : 0; };
-        Vector3 inputMovementDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+        Vector3 inputMovementDirection = new Vector3(playerInput.GetAxisRaw("Horizontal"), 0, playerInput.GetAxisRaw("Vertical"));
         inputMovementDirection.Normalize();
         _isAttemptingToMove = inputMovementDirection != Vector3.zero;
         _isMoving = inputMovementDirection != new Vector3(0,rb.velocity.y,0) ? true : false;
@@ -160,12 +190,14 @@ public class CharacterController : MonoBehaviour
         //float speed = speedLimit /  == 0 ? 1 : rb.velocity.sqrMagnitude;
         viewVelocity = transform.InverseTransformDirection(rb.velocity);
 
-
+        
+        
+        
         _animator.SetFloat("MovementMultiplyer", inputMovementDirection.sqrMagnitude);//Mathf.Clamp(transform.InverseTransformDirection(rb.velocity).z / speedLimit,.1f, transform.InverseTransformDirection(rb.velocity).z));
 
         ConvertInputDirToCameraDir(ref inputMovementDirection); // Converting Input to Camera's Direction
-        
-        AnimatiorStateBehaviour(inputMovementDirection,Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), Jump(Input.GetKeyDown(KeyCode.Space))); // Set Code Behaviour based on Animator State
+        HitBoxActivation();
+        AnimatiorStateBehaviour(inputMovementDirection,playerInput.GetAxisRaw("Horizontal"), playerInput.GetAxisRaw("Vertical"), Jump(playerInput.GetKeyDown(0))); // Set Code Behaviour based on Animator State
 
         
 
@@ -208,7 +240,7 @@ public class CharacterController : MonoBehaviour
     {
         bool isGrounded;
 
-        isGrounded = Physics.Raycast(transform.position, Vector3.down, bodyCollider.bounds.extents.y + .01f);
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, /*bodyCollider.bounds.extents.y +*/ .1f);
         if (isGrounded) _apexReached = false;
         _isGrounded = isGrounded;
         _animator.SetBool("IsGrounded", _isGrounded);
@@ -230,6 +262,7 @@ public class CharacterController : MonoBehaviour
         //Debug.Log();
         if (AttackState <= 1)
         {
+            Debug.Log("LightPunch Reset");
             this.AttackState = 0;            
         }        
 
@@ -240,6 +273,7 @@ public class CharacterController : MonoBehaviour
         //Debug.Log();
         if (AttackState >= 2)
         {
+            Debug.Log("MediumKick Reset");
             this.AttackState = 0;
         }
 
@@ -249,72 +283,96 @@ public class CharacterController : MonoBehaviour
     {
         
         //Debug.Log();
-        if (AttackState < 0)
+        if (AttackState >= 0)
         {
+            Debug.Log("HeavyKick Reset");
             this.AttackState = 0;
+            _animator.SetInteger("AttackState", _attackState);
         }
 
     }
-    
+
+
+    public
     void AnimatiorStateBehaviour(Vector3 inputMovementDirection, float horizontal, float vertical, float jump)
     {
-        Action<int, bool> Attack = (nextAttack, input) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); AttackState++; AttackState = AttackState > nextAttack ? nextAttack : AttackState; } };
+        Action<int, bool, Collider> Attack = (nextAttack, input, hitBoxCollider) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); /*if (hitBoxCollider != null) hitBoxCollider.enabled = true;AttackState++;*/ AttackState = AttackState > nextAttack ? nextAttack : AttackState += 1; RotateTowardsOpponent(opponentController.gameObject.transform.position, _inAttackRange); } };
         Action<bool> Special = (x) => { if (x == true) { Debug.Log(IsSpecialActive); _animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
         Action ResetTime = () => { _isAttacking = _isAttacking == true ? false : _isAttacking; _animator.SetBool("IsAttacking", _isAttacking); };
+
+        delayActionTimer.IsActive = _animator.GetCurrentAnimatorStateInfo(0).IsName("Idle") || _animator.GetCurrentAnimatorStateInfo(0).IsName("Running") ? true : false;
         
         if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
-            if (_isGrounded)
-            {
-                Attack(1, Input.GetKeyDown(KeyCode.F));
-            }
+            //if (delayActionTimer.count > 3f)
+            //{
+                if (_isGrounded)
+                {
+                    Attack(1, playerInput.GetKeyDown(2), null);
+                }
+            //}
+            
+
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             IdlePlayerMovement(jump); // Movement allowed while player is idle
-            Special(Input.GetKeyDown(KeyCode.G));
+            Special(playerInput.GetKeyDown(3));
+            //if (_attackState < 2) {_attackState = 0; _animator.SetInteger("AttackState", _attackState);}
+            //_animator.SetInteger("AttackState", _attackState);
 
-            
+
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Running"))
         {
-            if (_isGrounded)
-            {
-                Attack(1, Input.GetKeyDown(KeyCode.F));
-            }
+            //if (delayActionTimer.count > 3)
+            //{ 
+                if (_isGrounded)
+                {
+                    Attack(1, playerInput.GetKeyDown(2), liteAttackHitbox);
+                }
+            //}
+            
+
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             rb.AddForce(0, jump, 0, ForceMode.Impulse);
             //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is running
-            Special(Input.GetKeyDown(KeyCode.G));
+            Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch"))
         {
+            delayActionTimer.ResetCount(true);
+            Attack(2, playerInput.GetKeyDown(2), mediumAttackHitbox);
 
-
-            Attack(2, Input.GetKeyDown(KeyCode.F));
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is weak punching
-            Special(Input.GetKeyDown(KeyCode.G));
+            Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Medium Kick"))
         {
-
-            Attack(4, Input.GetKeyDown(KeyCode.F));
+            delayActionTimer.ResetCount(true);
+            Attack(4, playerInput.GetKeyDown(2), heavyAttackHitbox);
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is medium kicking
-            Special(Input.GetKeyDown(KeyCode.G));
+            Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick"))
         {
-
-            Attack(10, Input.GetKeyDown(KeyCode.F));
+            delayActionTimer.ResetCount(true);
+            Attack(10, playerInput.GetKeyDown(2), specialAttackHitbox);
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is heavy kicking
-            Special(Input.GetKeyDown(KeyCode.G));
+            Special(playerInput.GetKeyDown(3));
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick"))
         {
+            delayActionTimer.ResetCount(true);
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             //RunningPlayerMovement(inputMovementDirection, horizontal, vertical, jump); // Movement allowed while player is using Special
             Debug.Log("Hurricane Kick");
             _animator.SetFloat("SpecialSpeed", SpecialSpeed);
-            
+
         }
+        else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Defeated")) ;
+        {
+
+        }
+
        
     }
 
@@ -349,8 +407,17 @@ public class CharacterController : MonoBehaviour
         if (horizontal != 0 || vertical != 0)
             transform.rotation = Quaternion.LookRotation(movementDirection);
     }
+    public void RotateTowardsOpponent(Vector3 opponentLocation, bool inAttackRange)
+    {
+        //Debug.Log(opponentLocation);
+        //Debug.Log(inAttackRange);
+        Vector3 opponentDirection = opponentLocation - transform.position;
+        opponentDirection.y = 0;
+        Vector3 movementDirection = Vector3.RotateTowards(transform.forward, opponentDirection.normalized, 360 * Time.deltaTime, 0.0f); // Rotates the characters forward towards the direction of the Input movement;
+        if (inAttackRange)
+            transform.rotation = Quaternion.LookRotation(movementDirection);
+    }
 
-    
 
     void IdlePlayerMovement(float jump)
     {
@@ -363,7 +430,7 @@ public class CharacterController : MonoBehaviour
 
         for (int i = flame.Value; i > 0; i--)
         {        
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1);
             flame.SubtractValue(1);
             Debug.Log(flame.MaxValue);
         }
@@ -372,11 +439,100 @@ public class CharacterController : MonoBehaviour
         special.isExecuted = false;
     }
 
-    
+
+    void HitBoxActivation()
+    {
+        liteAttackHitbox.enabled = _animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch")? true:false;
+        mediumAttackHitbox.enabled =  _animator.GetCurrentAnimatorStateInfo(0).IsName("Medium Kick")? true: false;
+
+        heavyAttackHitbox.enabled = _animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick") ? true : false;
+        //Animator.applyRootMotion = _animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick") ? false : true;
+        specialAttackHitbox.enabled = _animator.GetCurrentAnimatorStateInfo(0).IsName("Hurricane Kick") ? true : false;
+        
+    }
+
+    void MediumAttackEnabled()
+    {
+        mediumAttackHitbox.enabled = true;
+    }
+
+
+
+    private void Initialized()
+    {
+        if (isInitialized == false)
+        playerInput = new CustomInput(playerID);
+        rb = GetComponent<Rigidbody>();
+        cameraContoller = Camera.main.GetComponent<CameraContoller>();
+        bodyCollider = GetComponent<CapsuleCollider>();
+        _animator = GetComponentInChildren<Animator>();
+        playerCollisionBox = GetComponent<Collider>();
+        playerHitboxes = GetComponentsInChildren<Collider>();
+        isopponentHitboxesSet = false;
+        opponentHitboxes = null;
+        isInitialized = true;       
+        
+    }
+    void Setup()
+    {
+
+        foreach (Collider playerHitbox in playerHitboxes)
+        {
+            if (playerHitbox.GetComponent<HitBox>() != null)
+            {
+                if (playerHitbox.GetComponent<HitBox>().attackDefinition.AttackType.Contains("LiteAttack")) liteAttackHitbox = playerHitbox.GetComponent<Collider>();
+                else if (playerHitbox.GetComponent<HitBox>().attackDefinition.AttackType.Contains("MediumAttack")) mediumAttackHitbox = playerHitbox.GetComponent<Collider>();
+                else if (playerHitbox.GetComponent<HitBox>().attackDefinition.AttackType.Contains("HeavyAttack")) heavyAttackHitbox = playerHitbox.GetComponent<Collider>();
+                else if (playerHitbox.GetComponent<HitBox>().attackDefinition.AttackType.Contains("SpecialAttack")) specialAttackHitbox = playerHitbox.GetComponent<Collider>();
+                else Debug.Log("Hitbox Does not have Attack Deffinition Assigned");
+            }
+        }
+
+
+
+
+        health.Initialize();
+        flame.Initialize();
+        _attackState = 0;
+
+
+
+
+
+        foreach (Collider playerHitbox in playerHitboxes)
+        {
+            if (playerHitbox.gameObject.CompareTag("Hitbox"))
+            {
+                Physics.IgnoreCollision(playerHitbox, playerCollisionBox);  // Prevent Player Hitboxes from Colliding with playerCollisionBox
+            }
+        }
+
+        foreach (Collider environment in enviornments)
+        {
+            foreach (Collider playerHitbox in playerHitboxes)
+            {
+                if (playerHitbox.gameObject.CompareTag("Hitbox"))
+                {
+                    Physics.IgnoreCollision(environment, playerHitbox); // Prevent playerHitboxes form Colliding with the Environment;
+                }
+            }
+        }
+        isSetup = true;        
+    }
+
+    public void AttackAudio()
+    {
+        audioSource.clip = audioClip;
+        audioSource.volume = 0.5f;
+        audioSource.Play();
+    }
+
+   
+    private void OnDisable()
+    {
+        isInitialized = false;
+        isSetup = false;
+    }
 
     
-
-    
-    
-
 }
