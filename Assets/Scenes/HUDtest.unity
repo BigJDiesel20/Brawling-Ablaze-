@@ -204,7 +204,7 @@ PrefabInstance:
     - target: {fileID: 6074820050157532365, guid: fd108622f4663f340a46ee51f98c45f4,
         type: 3}
       propertyPath: flame._value
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8827864971585214371, guid: fd108622f4663f340a46ee51f98c45f4,
         type: 3}
@@ -571,6 +571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb46c7506a8d6d94ea81988d9f07ff04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   slider: {fileID: 848259349}
 --- !u!1 &928869819
 GameObject:
@@ -1232,6 +1233,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb46c7506a8d6d94ea81988d9f07ff04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 1838668942}
   slider: {fileID: 1480321277}
 --- !u!1 &1541393943
 GameObject:
