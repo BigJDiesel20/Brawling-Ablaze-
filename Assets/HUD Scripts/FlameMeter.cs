@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class FlameMeter : MonoBehaviour
 {
+    // player's CharacterController
+    public CharacterController player;
+
     // the flame image positions
     public Image flameSlot1;
     public Image flameSlot2;
@@ -29,6 +32,9 @@ public class FlameMeter : MonoBehaviour
         flameDict.Add("green", greenFlame);
         flameDict.Add("orange", orangeFlame);
         flameDict.Add("red", redFlame);
+        flameSlot1.sprite = flameDict["red"];
+        flameSlot2.sprite = flameDict["red"];
+        flameSlot3.sprite = flameDict["red"];
     }
 
     // function to set flame meter state
@@ -82,5 +88,43 @@ public class FlameMeter : MonoBehaviour
         }
 
     }
-    
+
+    // Update is called once per frame
+    void Update()
+    {
+        var flame = player.flame;
+
+        switch (flame.Value)
+        {
+            case 0:
+                flameSlot1.enabled = false;
+                flameSlot2.enabled = false;
+                flameSlot3.enabled = false;
+                fullFlame.enabled = false;
+                break;
+            case 1:
+                flameSlot1.enabled = true;
+                flameSlot2.enabled = false;
+                flameSlot3.enabled = false;
+                fullFlame.enabled = false;
+                break;
+            case 2:
+                flameSlot1.enabled = true;
+                flameSlot2.enabled = true;
+                flameSlot3.enabled = false;
+                fullFlame.enabled = false;
+                break;
+            case 3:
+                flameSlot1.enabled = false;
+                flameSlot2.enabled = false;
+                flameSlot3.enabled = false;
+                fullFlame.enabled = true;
+                break;
+            default:
+                Debug.Log("Flame Value out of bounds!");
+                break;
+        }
+    }
+
+
 }
