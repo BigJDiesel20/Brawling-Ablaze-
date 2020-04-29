@@ -6,11 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Private/Jarvis/Scenes/Presistent.unity
+    path: Assets/Private/Jarvis/Scenes/Boot.unity
     guid: d10565b5b3ed76e448c3d2f5f930b2fc
-  - enabled: 1
-    path: Assets/Private/Jarvis/Scenes/Menu.unity
-    guid: 320effc3b087f804b8341661d80b778b
   - enabled: 1
     path: Assets/Private/Jarvis/Scenes/Stage.unity
     guid: ce235ef451ca3a64695145e6f70e01e2
@@ -20,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Private/Jarvis/Scenes/Jarvis Test Scene.unity
     guid: f0a47745d787ff9468d1b3483f481751
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: 0d5ead373876ae84aa1146a4e823d272
+  - enabled: 1
+    path: Assets/Private/Jarvis/Scenes/CharacterSelectMenu.unity
+    guid: e2b3c883946bf9742bd929e10979bcfd
   m_configObjects: {}

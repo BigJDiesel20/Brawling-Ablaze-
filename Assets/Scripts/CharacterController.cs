@@ -27,7 +27,7 @@ public class CharacterController : MonoBehaviour
     private bool nextAttack;
     private int _attackState;
     private bool _isSpecialActive;
-    private bool _inAttackRange;
+    public bool _inAttackRange;
     private bool _isBlocking;
 
 
@@ -189,7 +189,7 @@ public class CharacterController : MonoBehaviour
         //_animator.SetFloat("VerticalMovement", verticalMovement);
         //float speed = speedLimit /  == 0 ? 1 : rb.velocity.sqrMagnitude;
         viewVelocity = transform.InverseTransformDirection(rb.velocity);
-
+        Debug.Log(playerInput.GetAxisRaw("Horizontal"));
         
         
         
@@ -297,20 +297,20 @@ public class CharacterController : MonoBehaviour
     void AnimatiorStateBehaviour(Vector3 inputMovementDirection, float horizontal, float vertical, float jump)
     {
         Action<int, bool, Collider> Attack = (nextAttack, input, hitBoxCollider) => { if (input) { _isAttacking = true; _isMoving = false; _animator.SetBool("IsAttacking", _isAttacking); /*if (hitBoxCollider != null) hitBoxCollider.enabled = true;AttackState++;*/ AttackState = AttackState > nextAttack ? nextAttack : AttackState += 1; RotateTowardsOpponent(opponentController.gameObject.transform.position, _inAttackRange); } };
-        Action<bool> Special = (x) => { if (x == true) { Debug.Log(IsSpecialActive); _animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
+        Action<bool> Special = (x) => { if (x == true && flame.Value == flame.MaxValue) { Debug.Log(IsSpecialActive); _animator.SetBool("IsSpecialActive", IsSpecialActive); AttackState = 0; special.isExecuted = false; StartCoroutine(SpecialTimer()); }; };
         Action ResetTime = () => { _isAttacking = _isAttacking == true ? false : _isAttacking; _animator.SetBool("IsAttacking", _isAttacking); };
 
         delayActionTimer.IsActive = _animator.GetCurrentAnimatorStateInfo(0).IsName("Idle") || _animator.GetCurrentAnimatorStateInfo(0).IsName("Running") ? true : false;
         
         if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
         {
-            //if (delayActionTimer.count > 3f)
-            //{
+            if (delayActionTimer.count > .5f)
+            {
                 if (_isGrounded)
                 {
                     Attack(1, playerInput.GetKeyDown(2), null);
                 }
-            //}
+            }
             
 
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
@@ -323,14 +323,14 @@ public class CharacterController : MonoBehaviour
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Running"))
         {
-            //if (delayActionTimer.count > 3)
-            //{ 
+            if (delayActionTimer.count > 3)
+            {
                 if (_isGrounded)
                 {
                     Attack(1, playerInput.GetKeyDown(2), liteAttackHitbox);
                 }
-            //}
-            
+            }
+
 
             RotateTowardsMovementDirection(inputMovementDirection, horizontal, vertical);
             rb.AddForce(0, jump, 0, ForceMode.Impulse);
@@ -339,7 +339,7 @@ public class CharacterController : MonoBehaviour
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Lite Punch"))
         {
-            delayActionTimer.ResetCount(true);
+            //delayActionTimer.ResetCount(true);
             Attack(2, playerInput.GetKeyDown(2), mediumAttackHitbox);
 
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is weak punching
@@ -354,8 +354,10 @@ public class CharacterController : MonoBehaviour
         }
         else if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Heavy Kick"))
         {
+            AttackState = 0;
+            _animator.SetInteger("AttackState", AttackState);
             delayActionTimer.ResetCount(true);
-            Attack(10, playerInput.GetKeyDown(2), specialAttackHitbox);
+            Attack(0, playerInput.GetKeyDown(2), specialAttackHitbox);
             rb.velocity = new Vector3(0, rb.velocity.y, 0); // Movement allowed while player is heavy kicking
             Special(playerInput.GetKeyDown(3));
         }
@@ -427,12 +429,14 @@ public class CharacterController : MonoBehaviour
 
     public IEnumerator SpecialTimer()
     {
-
+        
         for (int i = flame.Value; i > 0; i--)
         {        
             yield return new WaitForSeconds(1);
+            if (flame.Value == 0) break;
             flame.SubtractValue(1);
             Debug.Log(flame.MaxValue);
+            
         }
 
         _animator.SetBool("IsSpecialActive", IsSpecialActive);

@@ -19,14 +19,15 @@ public class GameManager : Singleton<GameManager>
     public CharacterController playerOne;
     public CharacterController playerTwo;
 
+
     private List<AsyncOperation> loadOperations;
     // Start is called before the first frame update
     protected override void Awake()
     {
         base.Awake();
 
-        //_currentScene = "";
-        //LoadScene("Menu");
+        _currentScene = "";
+        LoadScene("Menu");
     }
     protected override void Start()
     {
@@ -39,14 +40,12 @@ public class GameManager : Singleton<GameManager>
     // Update is called once per frame
     protected override void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            PlaceCharacters();
-        }
+
     }
 
     public void LoadScene(string sceneName)
     {
+        Debug.Log(sceneName);
         if (_currentScene != sceneName)
         {
             AsyncOperation ao = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
@@ -74,7 +73,7 @@ public class GameManager : Singleton<GameManager>
 
     public void OnLoadSceneComplete(AsyncOperation ao)
     {
-
+          
         if (_previousScene != "")
         {
             UnloadScene(_previousScene);
@@ -83,21 +82,39 @@ public class GameManager : Singleton<GameManager>
 
     }
 
-    public void PlaceCharacters()
+    public void SpawnSelectedCharacters(GameObject playerOnePrefab, GameObject playerTwoPrefab)
     {
-        GameObject PlayerOne;
-        GameObject PlayerTwo;
 
-        PlayerOne = Instantiate(playerPrefabs[0], Vector3.zero,Quaternion.identity);
-        PlayerTwo = Instantiate(playerPrefabs[0], Vector3.zero, Quaternion.identity);
-
+        // Player 1
+        Debug.Log(playerOnePrefab.GetComponent<CharacterController>().playerID);
+        playerOnePrefab.GetComponent<CharacterController>().playerID = 1;
+        //Debug.Log("prefab1" + playerOnePrefab.GetComponent<CharacterController>().playerID.ToString());
+        GameObject PlayerOne = Instantiate(playerOnePrefab, new Vector3(10, 0, 0), Quaternion.identity);
+        PlayerOne.name = "Player1";
+        //Debug.Log(PlayerOne.name + PlayerOne.GetComponent<CharacterController>().playerID.ToString());
         PlayerOne.GetComponent<CharacterController>().playerID = 1;
-        PlayerTwo.GetComponent<CharacterController>().playerID = 2;
-        PlayerOne.GetComponent<CharacterController>().opponentController = PlayerOne.GetComponent<CharacterController>();
-        PlayerTwo.GetComponent<CharacterController>().opponentController = PlayerOne.GetComponent<CharacterController>();
-        PlayerOne.GetComponent<CharacterController>().enviornments = enviornment;
-        PlayerTwo.GetComponent<CharacterController>().enviornments = enviornment;
+        playerOne = PlayerOne.GetComponent<CharacterController>();
 
+        
+
+
+
+        // Player 2
+        Debug.Log(playerOnePrefab.GetComponent<CharacterController>().playerID);
+        playerTwoPrefab.GetComponent<CharacterController>().playerID = 2;        
+        GameObject PlayerTwo = Instantiate(playerTwoPrefab, new Vector3(-10, 0, 0), Quaternion.identity);
+        PlayerTwo.name = "Player2";        
+        PlayerTwo.GetComponent<CharacterController>().playerID = 2;
+        playerTwo = PlayerTwo.GetComponent<CharacterController>();
+
+
+
+        PlayerOne.GetComponent<CharacterController>().opponentController = PlayerTwo.GetComponent<CharacterController>();
+        PlayerOne.GetComponent<CharacterController>().enviornments = enviornment;
+        PlayerTwo.GetComponent<CharacterController>().opponentController = PlayerOne.GetComponent<CharacterController>();
+        PlayerTwo.GetComponent<CharacterController>().enviornments = enviornment;
+        PlayerOne.SetActive(false);
+        PlayerTwo.SetActive(false);
     }
 }
 
