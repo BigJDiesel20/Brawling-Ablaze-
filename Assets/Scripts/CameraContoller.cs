@@ -74,15 +74,21 @@ public class CameraContoller : MonoBehaviour
 
         if (GameManager.Instance.playerOne != null && GameManager.Instance.playerTwo != null)
         {
+            //if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .1f && Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .9f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .1f && Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .9f)
+            //{
+            //    CameraDistance--;
+            //    CameraDistance = Mathf.Clamp(CameraDistance, 5, 100);
+            //}
             if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .9f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .9f)// != null && GameManager.Instance.playerTwo != null
             {
-                CameraDistance++;
-                CameraDistance = Mathf.Clamp(CameraDistance, 5, 20);
+                CameraDistance += 2 * Time.deltaTime;
+                CameraDistance = Mathf.Clamp(CameraDistance, 5, 100);
             }
-            else if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .15f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .85f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .9f)
+
+            if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .3f && Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .7f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .3f && Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .7f)// != null && GameManager.Instance.playerTwo != null
             {
-                CameraDistance--;
-                CameraDistance = Mathf.Clamp(CameraDistance, 5, 20);
+                CameraDistance -= 10 * Time.deltaTime;
+                CameraDistance = Mathf.Clamp(CameraDistance, 5, 100);
             }
         }
 
@@ -149,7 +155,7 @@ public class CameraContoller : MonoBehaviour
 
         midPointAncor.transform.rotation =  Quaternion.LookRotation(rotateMidPointFowardTowards, Vector3.up); //Quaternion.FromToRotation(midPointAncor.transform.right, player2pos.normalized);
         midPointAncor.transform.rotation = Quaternion.Euler(new Vector3(midPointAncor.transform.eulerAngles.x, midPointAncor.transform.eulerAngles.y + 90, midPointAncor.transform.eulerAngles.z));
-        transform.position = Vector3.SmoothDamp(transform.position, midPointAncor.transform.TransformPoint((Vector3.forward * CameraDistance) + (Vector3.up * 3)), ref RefVelcoity,6);
+        transform.position = Vector3.SmoothDamp(transform.position, midPointAncor.transform.TransformPoint((Vector3.forward * CameraDistance) + (Vector3.up * 3)), ref RefVelcoity,1);
     }
     
 

@@ -169,7 +169,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -6230,12 +6230,16 @@ MonoBehaviour:
   middlePos: {x: 0, y: 0, z: 0}
   player1Render: {fileID: 0}
   player2Render: {fileID: 0}
+  midPointAncor: {fileID: 0}
   p1: 0
   p2: 0
   startValue: 0
   startPos: {x: 0, y: 0, z: 0}
   look: 0
   startingDistance: 0
+  rotateMidPointFowardTowards: {x: 0, y: 0, z: 0}
+  RefVelcoity: {x: 1, y: 1, z: 1}
+  CameraDistance: 0
 --- !u!1001 &1377688897
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6367,6 +6371,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: p1_flame_meter
+      objectReference: {fileID: 0}
+    - target: {fileID: 7492950848220683599, guid: 45360ea88d5e33f44be2b4b28983c46a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 45360ea88d5e33f44be2b4b28983c46a, type: 3}
