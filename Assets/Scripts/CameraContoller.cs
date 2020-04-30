@@ -14,6 +14,7 @@ public class CameraContoller : MonoBehaviour
     public Vector3 middlePos;
     public Collider player1Render;
     public Collider player2Render;
+    public GameObject midPointAncor;
     public bool p1;
     public bool p2;
     public RaycastHit hit;
@@ -26,6 +27,9 @@ public class CameraContoller : MonoBehaviour
     float InitialDistancefromMidpoint;
     float minDistance, maxDistance;
     [SerializeField]float startingDistance;
+    public Vector3 rotateMidPointFowardTowards;
+    public Vector3 RefVelcoity = Vector3.one;
+    public float CameraDistance;
     
 
     // Start is called before the first frame update   
@@ -40,19 +44,19 @@ public class CameraContoller : MonoBehaviour
     }
     void Start()
     {
-
+        midPointAncor = new GameObject("CameraAncor");
 
     }
     // Update is called once per frame
     void Update()
-    { 
-
+    {
+        
         // Get Position of Players and Player mid point
         if (GameManager.Instance.playerOne != null && GameManager.Instance.playerTwo != null)
         {
             player1pos = GameManager.Instance.playerOne.transform.position;
             player2pos = GameManager.Instance.playerTwo.transform.position;
-            middlePos = GameManager.Instance.playerTwo.transform.position + ((GameManager.Instance.playerOne.transform.position - GameManager.Instance.playerTwo.transform.position) * .5f);
+            middlePos = GameManager.Instance.playerTwo.transform.position + ((GameManager.Instance.playerOne.transform.position - GameManager.Instance.playerTwo.transform.position) * .5f);            
             transform.LookAt(middlePos + new Vector3(0, 1, 0));
 
         }
@@ -68,35 +72,51 @@ public class CameraContoller : MonoBehaviour
 
         }
 
-        // Camera Controller script
-        if (player1Render != null && player2Render != null)
+        if (GameManager.Instance.playerOne != null && GameManager.Instance.playerTwo != null)
         {
-
-            if (GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player1Render.bounds) == false || GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player2Render.bounds) == false)
+            if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .9f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .9f)// != null && GameManager.Instance.playerTwo != null
             {
-                number = transform.position.z + Time.deltaTime;
-                number2 = (middlePos - startPos).magnitude * .5f;
-                transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(number, middlePos.z + InitialDistancefromMidpoint, middlePos.z + InitialDistancefromMidpoint + 20));
-                //Debug.Log(number);
+                CameraDistance++;
+                CameraDistance = Mathf.Clamp(CameraDistance, 5, 20);
             }
-            else
+            else if (Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x > .15f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerOne.gameObject.transform.position).x < .85f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x < .1f || Camera.main.WorldToViewportPoint(GameManager.Instance.playerTwo.gameObject.transform.position).x > .9f)
             {
-                number = transform.position.z - Time.deltaTime;
-                number2 = (middlePos - startPos).sqrMagnitude;
-
-                transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(number, middlePos.z + InitialDistancefromMidpoint, middlePos.z + InitialDistancefromMidpoint + 20));
-                //Debug.Log(Mathf.Clamp(number, 40,50));
+                CameraDistance--;
+                CameraDistance = Mathf.Clamp(CameraDistance, 5, 20);
             }
-
-            p1 = GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player1Render.bounds);
-            p2 = GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player2Render.bounds);
-
-
         }
 
-        // Detect objects between camera and Player mid point;
+       
 
-        look = Mathf.Clamp(look + 1 * Time.deltaTime, -10, 10);
+            // Camera Controller script
+            //if (player1Render != null && player2Render != null)
+            //{
+
+            //    if (GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player1Render.bounds) == false || GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player2Render.bounds) == false)
+            //    {
+            //        number = transform.position.z + Time.deltaTime;
+            //        number2 = (middlePos - startPos).magnitude * .5f;
+            //        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(number, middlePos.z + InitialDistancefromMidpoint, middlePos.z + InitialDistancefromMidpoint + 20));
+            //        //Debug.Log(number);
+            //    }
+            //    else
+            //    {
+            //        number = transform.position.z - Time.deltaTime;
+            //        number2 = (middlePos - startPos).sqrMagnitude;
+
+            //        transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(number, middlePos.z + InitialDistancefromMidpoint, middlePos.z + InitialDistancefromMidpoint + 20));
+            //        //Debug.Log(Mathf.Clamp(number, 40,50));
+            //    }
+
+            //    p1 = GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player1Render.bounds);
+            //    p2 = GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(Camera.main), player2Render.bounds);
+
+
+            //}
+
+            // Detect objects between camera and Player mid point;
+
+            look = Mathf.Clamp(look + 1 * Time.deltaTime, -10, 10);
         //Debug.Log(look);
         ray = new Ray(transform.position, (middlePos - transform.position).normalized);
         if (Physics.Raycast(ray, out hit, (transform.position - middlePos).magnitude))
@@ -121,6 +141,17 @@ public class CameraContoller : MonoBehaviour
 
         
     }
+    private void LateUpdate()
+    {
+        UpdateCameraDirection();
+        midPointAncor.transform.position = middlePos;
+        rotateMidPointFowardTowards = Vector3.RotateTowards(midPointAncor.transform.up, (middlePos - player1pos).normalized, 360 * Time.deltaTime, 0f);
+
+        midPointAncor.transform.rotation =  Quaternion.LookRotation(rotateMidPointFowardTowards, Vector3.up); //Quaternion.FromToRotation(midPointAncor.transform.right, player2pos.normalized);
+        midPointAncor.transform.rotation = Quaternion.Euler(new Vector3(midPointAncor.transform.eulerAngles.x, midPointAncor.transform.eulerAngles.y + 90, midPointAncor.transform.eulerAngles.z));
+        transform.position = Vector3.SmoothDamp(transform.position, midPointAncor.transform.TransformPoint((Vector3.forward * CameraDistance) + (Vector3.up * 3)), ref RefVelcoity,6);
+    }
+    
 
     private void OnDrawGizmos()
     {
@@ -141,10 +172,7 @@ public class CameraContoller : MonoBehaviour
     }
 
 
-private void LateUpdate()
-    {
-        UpdateCameraDirection();
-    }
+
 
     void InitializeCameraDirection()
     {
